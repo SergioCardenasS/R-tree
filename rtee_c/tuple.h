@@ -11,7 +11,10 @@ struct Tuple * create_tuple (data_type *a)
     assert(t);
     int i;
     for (i=0 ; i<Dim ;i++)
+    {
         t->values[i]=a[i];
+    }
+
     return t;
 }
 

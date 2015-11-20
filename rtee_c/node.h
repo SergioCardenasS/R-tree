@@ -4,7 +4,7 @@ void delete_node (struct Node *a);
 //=====================================================================
 struct Node_h                   //datos nodo hoja
 {
-    struct Tuple *values[M_+1];
+    struct Tuple* values[M_+1];
 };
 
 struct Node_h* create_nodeh()
@@ -80,7 +80,7 @@ struct Node * create_node(int l)
     else
         n->my_nodes = create_nodenh();
     n->leaf = l;
-    n->my_box = NULL;
+    n->my_box = create_bbox();
     n->size = 0;
     n->father = NULL;
     return n;
@@ -104,15 +104,21 @@ void delete_node (struct Node *a)
 //se puede insert un puntero a un nodo o puntero a tupla, depende del tipo de nodo (nodo->leaf?)
 void insert_node (struct Node *n,void *d)
 {
+    struct Node* q;
+    struct Node* b;
+    struct Tuple *p;
     if (n->leaf) //entonces d es un tupla
     {
-        struct Tuple *q = (struct Tuple*)d;
-        ((struct Node_h*)(n->my_nodes))->values[n->size] = q;
-        
+        p = (struct Tuple*)d;
+        ((struct Node_h*)(n->my_nodes))->values[n->size] = p;
+
     }else{ //entonces d es un nodo
-        struct Node *q = (struct Node*)d;
+        q = (struct Node*)d;
+        printf("Insert\n");
         ((struct Node_nh*)(n->my_nodes))->values[n->size] = q;
         q->father = n;
+        b = (struct Node_nh*)(q->father->my_nodes)->values[0];
+        printf("I\n");
     }
     n->size +=1;
 }
@@ -121,12 +127,40 @@ void insert_node (struct Node *n,void *d)
 void updatebox(struct Node *n)
 {
 
+    struct Tuple *aux_min;
+    struct Tuple *aux_max;
+    struct Node_nh* nod = (struct Node_nh*)n->my_nodes;
+    aux_min = ((struct Node_nh*)(n->my_nodes))->values;
+    aux_max = ((struct Node_nh*)(n->my_nodes))->values;
+    int i,j;
+    for(i=0;i<Dim;i++)
+    {
+        for(j=1;j<n->size;++j)
+        {
+            if(aux_min->values[i]>(((struct Node_nh*)(n->my_nodes))->values[i]))
+                aux_min->values[i] = ((struct Node_nh*)(n->my_nodes))->values[i];
+            else if(aux_max->values[i]<(((struct Node_nh*)(n->my_nodes))->values[i]))
+                aux_max->values[i] = ((struct Node_nh*)(n->my_nodes))->values[i];
+        }
+    }
+    for(i=0;i<Dim;++i)
+    {
+        n->my_box->min_boundary[i] = aux_min->values[i];
+        n->my_box->max_boundary[i] = aux_max->values[i];
+    }
 }
 
 //actualizar tamaño de los limites con rsepecto a un nodo
 void updateboxtuple(struct Node *n, struct Tuple *a)
 {
-
+    int i;
+    for(i=0;i<Dim;++i)
+    {
+        if(a->values[i]<(n->my_box->min_boundary[i]))
+            n->my_box->min_boundary[i] = a->values[i];
+        else if(a->values[i]>(n->my_box->max_boundary[i]))
+            n->my_box->max_boundary[i] = a->values[i];
+    }
 }
 
 dist_type calculate_area(struct Bounding_box *b,struct Tuple *d)
@@ -142,18 +176,18 @@ dist_type calculate_area(struct Bounding_box *b,struct Tuple *d)
             mi[i] = b->min_boundary[i];
         else
             mi[i] = d->values[i];
-            
+
         if (b->max_boundary[i] > d->values[i])
             ma[i] = b->max_boundary[i];
         else
             ma[i] = d->values[i];
-        
+
         dist[i] = ma[i]-mi[i];
     }
-    
+
     for (i=0; i<Dim;i++)
         result *= dist[i];
-    
+
     return result;
 }
 
@@ -164,19 +198,19 @@ struct Node * choose_leaf(struct Node * n,struct Tuple *d)
     int s;  // s numero de elemntos de ese nodo
     dist_type area,area2; //expansion del area
     while(!p->leaf)
-    {        
+    {
         s = M_+1;
-        area = -1.0;        
+        area = -1.0;
         for (i=0 ; i < p->size ; i++) //recorrido por todos los hijos
         {
             if (within_bounding (d,p->my_box))
             {
                 if (s > p->size)
-                {   
+                {
                     area = 0.0;
                     pos = i;
                     s = p->size;
-                }                   
+                }
             }
         }
         if(area != 0.0)
@@ -188,11 +222,11 @@ struct Node * choose_leaf(struct Node * n,struct Tuple *d)
                     area = calculate_area(p->my_box,d);
                     pos = i;
                     s = p->size;
-                }   
+                }
                 else{
                     area2 = calculate_area(p->my_box,d);
                     if (area2 < area)
-                    {                        
+                    {
                         area = area2;
                         pos = i;
                         s = p->size;
@@ -203,7 +237,7 @@ struct Node * choose_leaf(struct Node * n,struct Tuple *d)
                         s = p->size;
                     }
                 }
-                    
+
             }
         }
         p = ((struct Node_nh*)(p->my_nodes))->values[pos];
