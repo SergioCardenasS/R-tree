@@ -66,6 +66,7 @@ struct Node
     struct Bounding_box *my_box;
     int size;
     void *my_nodes;
+    struct Node *father;
 };
 
 //inicializar nodo
@@ -81,6 +82,7 @@ struct Node * create_node(int l)
     n->leaf = l;
     n->my_box = NULL;
     n->size = 0;
+    n->father = NULL;
     return n;
 };
 
@@ -102,12 +104,17 @@ void delete_node (struct Node *a)
 //se puede insert un puntero a un nodo o puntero a tupla, depende del tipo de nodo (nodo->leaf?)
 void insert_node (struct Node *n,void *d)
 {
-    if (n->leaf)
+    if (n->leaf) //entonces d es un tupla
     {
-
-    }else{
-
+        struct Tuple *q = (struct Tuple*)d;
+        ((struct Node_h*)(n->my_nodes))->values[n->size] = q;
+        
+    }else{ //entonces d es un nodo
+        struct Node *q = (struct Node*)d;
+        ((struct Node_nh*)(n->my_nodes))->values[n->size] = q;
+        q->father = n;
     }
+    n->size +=1;
 }
 
 //actualizar tamaño de los limites
