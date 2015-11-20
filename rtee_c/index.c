@@ -58,8 +58,7 @@ void print(struct Node* p,int level){
             print(((struct Node_nh*)p->my_nodes)->values[i],level+1);
         }
     }
-}
-//recibe el root
+}//recibe el root
 void show_all(struct Node *n)
 {
 
