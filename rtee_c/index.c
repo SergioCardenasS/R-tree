@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <conio.h>
 #include <malloc.h>
 #include <stdbool.h>
 #include "assert.h"
@@ -20,7 +19,46 @@ typedef double dist_type;
 #include "heap.h"
 #include "rtree.h"
 
+void printTuples(struct Tuple *points){
+	printf("(");
+    int i;
+    for (i=0;i<M_;i++){
+   		printf("%d,", points->values[i]);
+   	}
+   	printf(")");
+}
 
+void print(struct Node* p,int level){
+    if (p->leaf){
+        int j;
+    	for (j=0;j<level;j++){
+            printf("     ");                
+        }
+        printf("[" );
+    	int i=0;
+        for (i=0;i<M_;i++){
+        	printTuples( ((struct Node_h*)p->my_nodes)->values[i]);
+        	printf(",");
+        }
+        printf(" size: %d,",p->size);
+        printf(" type: leaf");
+        printf("]\n" );
+
+        
+        return;
+    }
+    else{
+    	int j;
+        for (j=0;j<level;j++){
+                printf("     ");                
+        }
+        printf("%s\n","RECTANGULO" );
+    	int i;
+        for(i=0;i<M_;i++){
+            print(((struct Node_nh*)p->my_nodes)->values[i],level+1);
+        }
+    }
+}
 //recibe el root
 void show_all(struct Node *n)
 {
