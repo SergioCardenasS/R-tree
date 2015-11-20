@@ -129,7 +129,86 @@ void updateboxtuple(struct Node *n, struct Tuple *a)
 
 }
 
+dist_type calculate_area(struct Bounding_box *b,struct Tuple *d)
+{
+    data_type mi[Dim];
+    data_type ma[Dim];
+    data_type dist[Dim];
+    data_type result = 1.0;
+    int i;
+    for (i=0;i<Dim;i++)
+    {
+        if (b->min_boundary[i] < d->values[i])
+            mi[i] = b->min_boundary[i];
+        else
+            mi[i] = d->values[i];
+            
+        if (b->max_boundary[i] > d->values[i])
+            ma[i] = b->max_boundary[i];
+        else
+            ma[i] = d->values[i];
+        
+        dist[i] = ma[i]-mi[i];
+    }
+    
+    for (i=0; i<Dim;i++)
+        result *= dist[i];
+    
+    return result;
+}
+
 struct Node * choose_leaf(struct Node * n,struct Tuple *d)
 {
-    return NULL;
+    struct Node *p = n;
+    int i,pos;  // pos es la posicion de nodo elejido
+    int s;  // s numero de elemntos de ese nodo
+    dist_type area,area2; //expansion del area
+    while(!p->leaf)
+    {        
+        s = M_+1;
+        area = -1.0;        
+        for (i=0 ; i < p->size ; i++) //recorrido por todos los hijos
+        {
+            if (within_bounding (d,p->my_box))
+            {
+                if (s > p->size)
+                {   
+                    area = 0.0;
+                    pos = i;
+                    s = p->size;
+                }                   
+            }
+        }
+        if(area != 0.0)
+        {
+            for (i=0 ; i < p->size ; i++)
+            {
+                if (area == -1.0)
+                {
+                    area = calculate_area(p->my_box,d);
+                    pos = i;
+                    s = p->size;
+                }   
+                else{
+                    area2 = calculate_area(p->my_box,d);
+                    if (area2 < area)
+                    {                        
+                        area = area2;
+                        pos = i;
+                        s = p->size;
+                    }else if(area2 == area && s > p->size)
+                    {
+                        area = area2;
+                        pos = i;
+                        s = p->size;
+                    }
+                }
+                    
+            }
+        }
+        p = ((struct Node_nh*)(p->my_nodes))->values[pos];
+    }
+    return p;
 }
+
+
