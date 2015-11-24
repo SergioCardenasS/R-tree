@@ -16,7 +16,7 @@ typedef double dist_type;
 #include "tuple.h"
 #include "boundingbox.h"
 #include "node.h"
-#include "heap.h"
+//#include "heap.h"
 #include "rtree.h"
 
 void printTuples(struct Tuple *points,data_type size){
@@ -69,25 +69,32 @@ void show_all(struct Node *n)
 //=============================================================================
 int main (int argc, char* argv[])
 {
-    struct Rtree *tree;
-    tree = create_rtree();
-    data_type dim = 2;
-    data_type a[]={1,1};
-    data_type b[]={2,2};
-    insert_tree(tree,a);
-    insert_tree(tree,b);
+    struct Rtree *tree = create_rtree();
+/*    struct Node *nod = create_node(0); //no hoja
+    struct Node *nod00 = create_node(1); //hoja
+*/   
+    
+    //data_type dim = 2;
+    data_type a[2];    
+      
+/*    
+    struct Tuple *tup01 = create_tuple(a);
+    struct Tuple *tup02 = create_tuple(b);
+    insert_node(nod00,tup01);
+    insert_node(nod00,tup02);
+    insert_node(nod,nod00);
+*/    
+    
+    int i;
+    for (i=0; i<1000 ; i++)
+    {
+        a[0] = i;
+        a[1] = i;
+        insert_tree(tree,a);
+    }    
 
-    data_type c[]={3,3};
-    insert_tree(tree,c);
 
-    data_type d[]={4,4};
-    insert_tree(tree,d);
-
-    data_type e[]={5,5};
-    insert_tree(tree,e);
-
-
-    print(tree->root,0);
-    destroy_rtree(tree);
+    //print(tree->root,0);
+    //destroy_rtree(tree);
     return 0;
 }
