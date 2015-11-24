@@ -90,6 +90,7 @@ struct Node * create_node(int l)
 
 void delete_node (struct Node *a)
 {
+    a->father = NULL;
     if (a)
     {
         delete_bbox(a->my_box);
@@ -103,22 +104,18 @@ void delete_node (struct Node *a)
 
 //se puede insert un puntero a un nodo o puntero a tupla, depende del tipo de nodo (nodo->leaf?)
 void insert_node (struct Node *n,void *d)
-{
-    struct Node* q;
-    struct Node* b;
-    struct Tuple *p;
+{  
     if (n->leaf) //entonces d es un tupla
     {
+        struct Tuple *p;
         p = (struct Tuple*)d;
         ((struct Node_h*)(n->my_nodes))->values[n->size] = p;
 
     }else{ //entonces d es un nodo
-        q = (struct Node*)d;
-        printf("Insert\n");
-        ((struct Node_nh*)(n->my_nodes))->values[n->size] = q;
-        q->father = n;
-        b = (struct Node_nh*)(q->father->my_nodes)->values[0];
-        printf("I\n");
+        struct Node *p;
+        p = (struct Node*)d;
+        ((struct Node_nh*)(n->my_nodes))->values[n->size] = p;
+        p->father = n;
     }
     n->size +=1;
 }
@@ -126,40 +123,67 @@ void insert_node (struct Node *n,void *d)
 //actualizar tamaño de los limites
 void updatebox(struct Node *n)
 {
-
-    struct Tuple *aux_min;
-    struct Tuple *aux_max;
-    struct Node_nh* nod = (struct Node_nh*)n->my_nodes;
-    aux_min = ((struct Node_nh*)(n->my_nodes))->values;
-    aux_max = ((struct Node_nh*)(n->my_nodes))->values;
+    struct Bounding_box *bb = n->my_box;
     int i,j;
-    for(i=0;i<Dim;i++)
+    if (n->leaf)
     {
-        for(j=1;j<n->size;++j)
+        struct Node_h* nod = (struct Node_h*)n->my_nodes;
+        struct Tuple* tup = nod->values[0];        
+        for(i=0 ; i<Dim ; ++i)
         {
-            if(aux_min->values[i]>(((struct Node_nh*)(n->my_nodes))->values[i]))
-                aux_min->values[i] = ((struct Node_nh*)(n->my_nodes))->values[i];
-            else if(aux_max->values[i]<(((struct Node_nh*)(n->my_nodes))->values[i]))
-                aux_max->values[i] = ((struct Node_nh*)(n->my_nodes))->values[i];
+            bb->min_boundary[i] = tup->values[i];
+            bb->max_boundary[i] = tup->values[i];
         }
+        
+        for(i=1 ; i<n->size ; ++i)
+        {
+            tup = nod->values[i];
+            for(j=0 ; j<Dim ; ++j)
+            {
+                if(bb->min_boundary[j] > tup->values[j])
+                    bb->min_boundary[j] = tup->values[j];
+                else if (bb->max_boundary[j] < tup->values[j])
+                    bb->max_boundary[j] = tup->values[j];
+            }
+        }    
     }
-    for(i=0;i<Dim;++i)
+    else
     {
-        n->my_box->min_boundary[i] = aux_min->values[i];
-        n->my_box->max_boundary[i] = aux_max->values[i];
-    }
+        struct Node_nh* nod = (struct Node_nh*)n->my_nodes;
+        struct Bounding_box *box = nod->values[0]->my_box;
+        for(i=0 ; i<Dim ; ++i)
+        {
+            bb->min_boundary[i] = box->min_boundary[i];
+            bb->max_boundary[i] = box->max_boundary[i];
+        }
+        
+        for(i=1 ; i<n->size ; ++i)
+        {
+            box = nod->values[i]->my_box;
+            for(j=0 ; j<Dim ; ++j)
+            {
+                if (bb->min_boundary[j] > box->min_boundary[j])
+                    bb->min_boundary[j] = box->min_boundary[j];
+                if (bb->max_boundary[j] > box->max_boundary[j])
+                    bb->max_boundary[j] = box->max_boundary[j];
+            }
+        }
+    }  
 }
 
 //actualizar tamaño de los limites con rsepecto a un nodo
 void updateboxtuple(struct Node *n, struct Tuple *a)
 {
+    struct Bounding_box *box = n->my_box;
+    if (within_bounding(a,box))
+        return;
     int i;
     for(i=0;i<Dim;++i)
     {
-        if(a->values[i]<(n->my_box->min_boundary[i]))
-            n->my_box->min_boundary[i] = a->values[i];
-        else if(a->values[i]>(n->my_box->max_boundary[i]))
-            n->my_box->max_boundary[i] = a->values[i];
+        if(a->values[i] < box->min_boundary[i])
+            box->min_boundary[i] = a->values[i];
+        else if(a->values[i] > box->max_boundary[i])
+            box->max_boundary[i] = a->values[i];
     }
 }
 

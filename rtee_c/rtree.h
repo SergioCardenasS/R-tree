@@ -25,35 +25,35 @@ void destroy_rtree(struct Rtree *t)
 se debe actualizar los bboxes de ambos nodos con 'updatebox'*/
 void split(struct Node *a,struct Node* b)
 {
-    data_type b_size = (int)(a->size/2);
-    struct Tuple *q;
-    struct Node *c;
-    int i,j;
+    int b_size = (int)(a->size/2);    
+    //sort(a);   
+    int i;//,j;
     if(a->leaf)
-    {
-        b = create_node(a->leaf);
-        for(i=b_size+1;i<a->size;++i)
+    {   
+        struct Node_h *p = (struct Node_h*)(a->my_nodes);     
+        for(i=b_size+1 ; i<=M_ ; ++i)
         {
-            q = ((struct Node_h*)(a->my_nodes))->values[i];
-            insert_node(b,q);
-            ((struct Node_h*)(a->my_nodes))->values[i] = NULL;
+            insert_node(b,p->values[i]);
+            p->values[i] = NULL;
         }
     }
     else
     {
-        b = create_node(a->leaf);
-        for(i=b_size+1;i<a->size;++i)
+        struct Node_nh *p = (struct Node_nh*)(a->my_nodes);        
+        for(i=b_size+1 ; i<=M_ ; ++i)
         {
-            c = ((struct Node_nh*)(a->my_nodes))->values[i];
-            insert_node(b,c);
-            ((struct Node_nh*)(a->my_nodes))->values[i] = NULL;
+            insert_node(b,p->values[i]);
+            p->values[i] = NULL;
         }
     }
-    a->size = a->size - b->size;
+    a->size = b_size+1;    
+    updatebox(a);
+    updatebox(b);    
+    /*
     printf("%d \n",b->size);
-    for (i=0;i<b->size;i++)
+    for (i=0 ; i<b->size ; i++)
     {
-        for (j=0;j<Dim;j++)
+        for (j=0 ; j<Dim ; j++)
         {
             printf("%d,", ((struct Node_h*)b->my_nodes)->values[i]->values[j]);
         }
@@ -61,7 +61,7 @@ void split(struct Node *a,struct Node* b)
     }
     printf("\n");
     printf("%d \n",a->size);
-    for (i=0;i<a->size;i++)
+    for (i=0 ; i<a->size ; i++)
     {
         for (j=0;j<Dim;j++)
         {
@@ -69,22 +69,18 @@ void split(struct Node *a,struct Node* b)
         }
         printf(" - ");
     }
-    printf("\n");
-    updatebox(a);
-    updatebox(b);
+    printf("\n ================================================================== \n");*/
 }
 
 //crear nuevo root y agregar p y q, y actualizar bbox del nuevo root
-void create_newroot(struct Rtree *t,struct Node* p,struct Node* q)
+void create_newroot(struct Rtree *t,struct Node* q)
 {
-
-    struct Node *n = t->root;
+    struct Node* p = t->root;
+    struct Node *n;
     n = create_node(0);
+    t->root = n;
     insert_node(n,p);
     insert_node(n,q);
-
-    t->root = n;
-
     updatebox(n);
 }
 
@@ -92,29 +88,28 @@ void create_newroot(struct Rtree *t,struct Node* p,struct Node* q)
 void insert_tree(struct Rtree *t, data_type *d)
 {
     //struct Heap *my_heap;   //almace los nodos no hojas desde el root hasta el destino a insertar
-    struct Node *p = t->root;
+    
+    struct Node *p;
     struct Node *q = NULL;
     struct Tuple *r = create_tuple(d);
-
-    p = choose_leaf(p,r); // p tiene el lugar donde es mejor insertar r
-    insert_node(p,r);
+/*    if (find(t->root,r))
+    {
+        delete_tuple(r);
+        return;
+    }*/
+    p = choose_leaf(t->root,r); 
+    insert_node(p,r);       //p es nodo hoja
 
     int key = 0; //nos dice si hubo un split anterior
-    if (p == t->root){
-        if (p->size > M_)
-        {
-            split(p,q);
-            key = 1;
-        }
-        else
-            updateboxtuple(p,r);
-    }
-    while (p != t->root)
+    
+    while (p != NULL)
     {
         if (key)
             insert_node(p,q);
+            
         if (p->size > M_)
-        {
+        {   
+            q = create_node(p->leaf);
             split(p,q);
             key = 1;
         }
@@ -122,9 +117,12 @@ void insert_tree(struct Rtree *t, data_type *d)
         {
             updateboxtuple(p,r);
             key = 0;
-        }
+        }        
         p = p->father;
     }
+       
     if (key)
-        create_newroot(t,p,q);
+        create_newroot(t,q);
 }
+
+
