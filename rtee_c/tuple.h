@@ -44,3 +44,30 @@ bool compare_tuple(struct Tuple *a, struct Tuple *b)
     return 1;
 }
 
+data_type area_between_tuples(struct Tuple *a,struct Tuple *b)
+{
+    data_type result = (data_type)1.0;
+    int i;
+    for (i=0 ; i<Dim ; i++)
+    {
+        if (a->values[i] < b->values[i])
+            result *= b->values[i] - a->values[i];
+        else
+            result *= a->values[i] - b->values[i];         
+    }
+    return result;
+}
+
+int min_list (data_type *list, int size)
+{
+    int i;
+    int j=0;
+    for (i=1 ; i<size ; i++)
+    {
+        if (list[j] > list[i])
+            j=i;
+    }    
+    return j;
+}
+
+

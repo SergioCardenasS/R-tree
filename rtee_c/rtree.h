@@ -113,51 +113,71 @@ void destroy_rtree(struct Rtree *t)
 se debe actualizar los bboxes de ambos nodos con 'updatebox'*/
 void split(struct Node *a,struct Node* b)
 {
-    int b_size = (int)(a->size/2);
-    //sort(a);
-    int i;//,j;
+    pick_seed(a);
+    //int i;
+    //int j;/*
     if(a->leaf)
-    {
+    { 
         struct Node_h *p = (struct Node_h*)(a->my_nodes);
-        for(i=b_size+1 ; i<a->size ; ++i)
+        struct Node *tmp = create_node(a->leaf);
+        insert_node(b,p->values[M_]);
+        p->values[M_] = NULL;
+        a->size -= 1;
+        translate_node(a,tmp); 
+        updatebox(a);
+        updatebox(b);
+        updatebox(tmp);
+        while (a->size < m_)
         {
-            insert_node(b,p->values[i]);
-            p->values[i] = NULL;
+            pick_next(tmp,a);
+            pick_next(tmp,b);
         }
+        while (tmp->size > 0)
+            pick_next_xor(tmp,a,b);
+        delete_node(tmp);    
     }
     else
     {
         struct Node_nh *p = (struct Node_nh*)(a->my_nodes);
-        for(i=b_size+1 ; i<a->size ; ++i)
+        struct Node *tmp = create_node(a->leaf);       
+        insert_node(b,p->values[M_]);
+        p->values[M_] = NULL;
+        a->size -= 1;
+        translate_node(a,tmp); 
+        updatebox(a);
+        updatebox(b);
+        updatebox(tmp);
+        while (a->size < m_)
         {
-            insert_node(b,p->values[i]);
-            p->values[i] = NULL;
+            pick_next(tmp,a);
+            pick_next(tmp,b);
         }
+        while (tmp->size > 0)
+            pick_next_xor(tmp,a,b);
+        delete_node(tmp);
     }
-    a->size = b_size+1;
-    updatebox(a);
-    updatebox(b);
-//    int j;
-//    printf("%d \n",b->size);
-//    for (i=0 ; i<b->size ; i++)
-//    {
-//        for (j=0 ; j<Dim ; j++)
-//        {
-//            printf("%d,", ((struct Node_h*)b->my_nodes)->values[i]->values[j]);
-//        }
-//        printf(" - ");
-//    }
-//    printf("\n");
-//    printf("%d \n",a->size);
-//    for (i=0 ; i<a->size ; i++)
-//    {
-//        for (j=0;j<Dim;j++)
-//        {
-//            printf("%d,", ((struct Node_h*)a->my_nodes)->values[i]->values[j]);
-//        }
-//        printf(" - ");
-//    }
-//    printf("\n ================================================================== \n");
+    
+    /*
+    printf("%d \n",b->size);
+    for (i=0 ; i<b->size ; i++)
+    {
+        for (j=0 ; j<Dim ; j++)
+        {
+            printf("%d,", ((struct Node_h*)b->my_nodes)->values[i]->values[j]);
+        }
+        printf(" - ");
+    }
+    printf("\n");
+    printf("%d \n",a->size);
+    for (i=0 ; i<a->size ; i++)
+    {
+        for (j=0;j<Dim;j++)
+        {
+            printf("%d,", ((struct Node_h*)a->my_nodes)->values[i]->values[j]);
+        }
+        printf(" - ");
+    }
+    printf("\n ================================================================== \n");*/
 }
 
 //crear nuevo root y agregar p y q, y actualizar bbox del nuevo root
@@ -174,9 +194,7 @@ void create_newroot(struct Rtree *t,struct Node* q)
 
 //insercion en el arbol desde la raiz
 void insert_tree(struct Rtree *t, data_type *d)
-{
-    //struct Heap *my_heap;   //almace los nodos no hojas desde el root hasta el destino a insertar
-
+{ 
     struct Node *p;
     struct Node *q = NULL;
     struct Tuple *r = create_tuple(d);
@@ -185,20 +203,18 @@ void insert_tree(struct Rtree *t, data_type *d)
         delete_tuple(r);
         return;
     }*/
-//    if(find_element2(t->root,r))
-//        return 0;
-    p = choose_leaf(t->root,r);
+    p = choose_leaf(t->root,r); 
     insert_node(p,r);       //p es nodo hoja
 
     int key = 0; //nos dice si hubo un split anterior
-
+    
     while (p != NULL)
     {
         if (key)
             insert_node(p,q);
-
+            
         if (p->size > M_)
-        {
+        {   
             q = create_node(p->leaf);
             split(p,q);
             key = 1;
@@ -207,10 +223,10 @@ void insert_tree(struct Rtree *t, data_type *d)
         {
             updateboxtuple(p,r);
             key = 0;
-        }
+        }        
         p = p->father;
     }
-
+       
     if (key)
         create_newroot(t,q);
 }
