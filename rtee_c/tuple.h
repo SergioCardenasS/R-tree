@@ -34,3 +34,13 @@ dist_type distance(struct Tuple *a, struct Tuple *b)
     sum = sqrt(sum);
     return sum;
 }
+
+bool compare_tuple(struct Tuple *a, struct Tuple *b)
+{
+    int i;
+    for (i=0 ; i<Dim ; i++)
+        if(a->values[i]!=b->values[i])
+            return 0;
+    return 1;
+}
+

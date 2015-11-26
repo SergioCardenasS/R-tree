@@ -19,7 +19,7 @@ typedef double dist_type;
 //#include "heap.h"
 #include "rtree.h"
 
-void printTuples(struct Tuple *points,data_type size){
+void printTuples(struct Tuple *points){
 	printf("(");
     int i;
     for (i=0;i<Dim;i++){
@@ -37,14 +37,12 @@ void print(struct Node* p,int level){
         printf("[" );
     	int i=0;
         for (i=0;i<p->size;i++){
-        	printTuples( ((struct Node_h*)p->my_nodes)->values[i],p->size);
+        	printTuples( ((struct Node_h*)p->my_nodes)->values[i]);
         	printf(",");
         }
         printf(" size: %d,",p->size);
         printf(" type: leaf");
         printf("]\n" );
-
-
         return;
     }
     else{
@@ -54,7 +52,7 @@ void print(struct Node* p,int level){
         }
         printf("%s\n","RECTANGULO" );
     	int i;
-        for(i=0;i<M_;i++){
+        for(i=0;i<p->size;i++){
             print(((struct Node_nh*)p->my_nodes)->values[i],level+1);
         }
     }
@@ -72,29 +70,32 @@ int main (int argc, char* argv[])
     struct Rtree *tree = create_rtree();
 /*    struct Node *nod = create_node(0); //no hoja
     struct Node *nod00 = create_node(1); //hoja
-*/   
-    
+*/
+
     //data_type dim = 2;
-    data_type a[2];    
-      
-/*    
+    data_type a[2];
+
+/*
     struct Tuple *tup01 = create_tuple(a);
     struct Tuple *tup02 = create_tuple(b);
     insert_node(nod00,tup01);
     insert_node(nod00,tup02);
     insert_node(nod,nod00);
-*/    
-    
+*/
+
     int i;
-    for (i=0; i<1000 ; i++)
+    for (i=0; i<10 ; i++)
     {
         a[0] = i;
         a[1] = i;
         insert_tree(tree,a);
-    }    
+        print(tree->root,0);
+    }
+//    a[0] = 1;
+//    a[1] = 1;
+//    insert_tree(tree,a);
+//    print(tree->root,0);
 
-
-    //print(tree->root,0);
     //destroy_rtree(tree);
     return 0;
 }

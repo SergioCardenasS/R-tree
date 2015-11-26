@@ -104,7 +104,7 @@ void delete_node (struct Node *a)
 
 //se puede insert un puntero a un nodo o puntero a tupla, depende del tipo de nodo (nodo->leaf?)
 void insert_node (struct Node *n,void *d)
-{  
+{
     if (n->leaf) //entonces d es un tupla
     {
         struct Tuple *p;
@@ -128,13 +128,13 @@ void updatebox(struct Node *n)
     if (n->leaf)
     {
         struct Node_h* nod = (struct Node_h*)n->my_nodes;
-        struct Tuple* tup = nod->values[0];        
+        struct Tuple* tup = nod->values[0];
         for(i=0 ; i<Dim ; ++i)
         {
             bb->min_boundary[i] = tup->values[i];
             bb->max_boundary[i] = tup->values[i];
         }
-        
+
         for(i=1 ; i<n->size ; ++i)
         {
             tup = nod->values[i];
@@ -145,7 +145,7 @@ void updatebox(struct Node *n)
                 else if (bb->max_boundary[j] < tup->values[j])
                     bb->max_boundary[j] = tup->values[j];
             }
-        }    
+        }
     }
     else
     {
@@ -156,7 +156,7 @@ void updatebox(struct Node *n)
             bb->min_boundary[i] = box->min_boundary[i];
             bb->max_boundary[i] = box->max_boundary[i];
         }
-        
+
         for(i=1 ; i<n->size ; ++i)
         {
             box = nod->values[i]->my_box;
@@ -168,7 +168,7 @@ void updatebox(struct Node *n)
                     bb->max_boundary[j] = box->max_boundary[j];
             }
         }
-    }  
+    }
 }
 
 //actualizar tamaño de los limites con rsepecto a un nodo
