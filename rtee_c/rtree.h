@@ -105,12 +105,16 @@ void create_newroot(struct Rtree *t,struct Node* q)
 
 void delete_root(struct Rtree *t)
 {
-    if (t->root->size == 1 && !t->root->leaf)
+    if (!t->root)
+        return;
+    if (!t->root->leaf && t->root->size == 1)
     {   
         struct Node *p = t->root;
         struct Node_nh *q = (struct Node_nh*)(p->my_nodes);
         t->root = q->values[0];
+        t->root->father = NULL;
         q->values[0] = NULL;
+        p->size -=1;
         delete_node(p);
     }
 }
@@ -202,9 +206,10 @@ void delete_tree(struct Rtree *t, data_type *d)
         }
         else
         {
-            updatebox(p);
+            
             key = 0;
-        }        
+        }
+        updatebox(p);            
         p = p->father;
     }
        
