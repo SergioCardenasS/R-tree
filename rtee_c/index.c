@@ -30,6 +30,20 @@ void printTuples(struct Tuple *points){
    	printf(")");
 }
 
+void printBox(struct Bounding_box *bb)
+{
+    if (!bb)
+        return;
+    printf("(");
+    int i;
+    for (i=0 ; i<Dim ; i++)
+   		printf("%g;", bb->min_boundary[i]);
+    printf(" - ");
+   	for (i=0 ; i<Dim ; i++)
+   		printf("%g;", bb->max_boundary[i]);
+   	printf(")");
+}
+
 void print(struct Node* p,int level){
     if (!p)
         return;
@@ -51,7 +65,9 @@ void print(struct Node* p,int level){
     	struct Node_nh *q = (struct Node_nh*)(p->my_nodes);
         for (i=0 ; i<level ; i++)
                 printf("  ");       
-        printf("RECTANGULO \n");
+        printf("RECTANGULO ");
+        printBox(p->my_box);
+        printf("\n");
         for (i=0 ; i<M_ ; i++)
             print(q->values[i],level+1);        
     }
@@ -67,12 +83,22 @@ int main (int argc, char* argv[])
     int i;
     for (i=0; i<50 ; i++)
     {
-        a[0] = (rand()%10000)/100.00;
-        a[1] = (rand()%10000)/100.00;
+        //a[0] = (rand()%10000)/100.00;
+        //a[1] = (rand()%10000)/100.00;
+        a[0] = a[1] = (data_type)i;         
         insert_tree(tree,a);
     }
-
     print(tree->root,0);
-    destroy_rtree(tree);     
+    printf("======================================= \n");
+    
+    for (i=0; i<10 ; i++)
+    {        
+        a[0] = a[1] = (data_type)i;        
+        delete_tree(tree,a);
+    }
+    
+    
+    print(tree->root,0);   
+    destroy_rtree(tree);
     return 0;
 }

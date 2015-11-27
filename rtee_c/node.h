@@ -181,7 +181,7 @@ void updatebox(struct Node *n)
             {
                 if (bb->min_boundary[j] > box->min_boundary[j])
                     bb->min_boundary[j] = box->min_boundary[j];
-                if (bb->max_boundary[j] > box->max_boundary[j])
+                if (bb->max_boundary[j] < box->max_boundary[j])
                     bb->max_boundary[j] = box->max_boundary[j];
             }
         }
@@ -388,5 +388,34 @@ void translate_node (struct Node *a,struct Node* b)
     b->size = a->size -1;
     a->size = 1;   
 }   
+
+void delete_tuple_node(struct Node *n,void * v)
+{
+    int i;
+    if (n->leaf)
+    {
+        struct Node_h *p = (struct Node_h*)(n->my_nodes);
+        for(i=0 ; i<n->size ; i++)
+            if (compare_tuple(p->values[i],(struct Tuple*)v))
+                break;
+        n->size -= 1;
+        swap(n,i,n->size);
+        delete_tuple(p->values[n->size]);
+        p->values[n->size] = NULL; 
+    }
+    else
+    {
+        struct Node_nh *p = (struct Node_nh*)(n->my_nodes);
+        for(i=0 ; i<n->size ; i++)
+            if ((struct Node*)v == p->values[i])
+                break;
+        n->size -= 1;
+        swap(n,i,n->size);
+        p->values[n->size] = NULL;
+        ((struct Node*)v)->father = NULL;
+    }
+    
+       
+}
 
 
